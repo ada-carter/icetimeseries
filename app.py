@@ -9,12 +9,13 @@ st.title("Evolution of Carbonate Chemistry since Pre-Industrial Times")
 # Load data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('datasheet.csv', skiprows=1)
+    df = pd.read_csv('data2.csv', skiprows=1)
     # strip whitespace from column names
     df.columns = df.columns.str.strip()
     # add a time index if no Year column
     if 'Year' not in df.columns:
-        df['Year'] = df.index
+        start_year = 1679
+        df['Year'] = df.index + start_year
     return df
 
 df = load_data()
@@ -28,23 +29,23 @@ st.write("Data loaded with {} rows".format(len(df)))
 Ca_mol = 0.01028  # mol/kgSW
 Ksp_calcite = 3.3e-7
 # convert CO3 from mmol to mol
-df['CO3_mol'] = df['CO3 out (mmol/kgSW)'] * 1e-3
+df['CO3_mol'] = df['CO3 in (mmol/kgSW)'] * 1e-3
 # compute Omega
 df['Omega_CaCO3'] = (Ca_mol * df['CO3_mol']) / Ksp_calcite
 
 # add grouping by Year to compute mean values
 df_group = df.groupby('Year').agg({
-    'pCO2 out (matm)': 'mean',
-    'pH out': 'mean',
-    'CO3 out (mmol/kgSW)': 'mean',
+    'pCO2 in (matm)': 'mean',
+    'pH in': 'mean',
+    'CO3 in (mmol/kgSW)': 'mean',
     'Omega_CaCO3': 'mean',
-    't(oC) out': 'mean',
-    'P (dbars) out': 'mean'
+    't(oC) in': 'mean',
+    'P (dbars) in': 'mean'
 }).reset_index()
 
 # display Input Conditions
 st.subheader("Input Conditions")
-st.write(df[['t(oC) out','P (dbars) out']].head())
+st.write(df[['t(oC) in','P (dbars) in']].head())
 
 # display Results for Input Conditions (mean values)
 st.subheader("Mean Results for Input Conditions")
@@ -53,17 +54,17 @@ st.write(df_group.head())
 # update plots to use mean series
 # Plot mean pCO2 evolution
 st.subheader("Mean pCO2 (µatm) over Time")
-fig1 = px.line(df_group, x='Year', y='pCO2 out (matm)', title='Mean pCO2 evolution')
+fig1 = px.line(df_group, x='Year', y='pCO2 in (matm)', title='Mean pCO2 evolution')
 st.plotly_chart(fig1, use_container_width=True)
 
 # Plot mean pH evolution
 st.subheader("Mean pH over Time")
-fig2 = px.line(df_group, x='Year', y='pH out', title='Mean pH evolution')
+fig2 = px.line(df_group, x='Year', y='pH in', title='Mean pH evolution')
 st.plotly_chart(fig2, use_container_width=True)
 
 # Plot mean carbonate concentration evolution
 st.subheader("Mean [CO3^2-] (mmol/kgSW) over Time")
-fig3 = px.line(df_group, x='Year', y='CO3 out (mmol/kgSW)', title='Mean Carbonate ion concentration evolution')
+fig3 = px.line(df_group, x='Year', y='CO3 in (mmol/kgSW)', title='Mean Carbonate ion concentration evolution')
 st.plotly_chart(fig3, use_container_width=True)
 
 # Plot mean Omega CaCO3 evolution
@@ -77,19 +78,19 @@ st.write(f"Estimated change in mean ΩCaCO3 between start and end: {delta_mean:.
 
 # Additional helpful graphs
 st.subheader("Mean Temperature over Time")
-fig_temp = px.line(df_group, x='Year', y='t(oC) out', title='Mean Temperature Evolution')
+fig_temp = px.line(df_group, x='Year', y='t(oC) in', title='Mean Temperature Evolution')
 st.plotly_chart(fig_temp, use_container_width=True)
 
 st.subheader("Mean Pressure over Time")
-fig_press = px.line(df_group, x='Year', y='P (dbars) out', title='Mean Pressure Evolution')
+fig_press = px.line(df_group, x='Year', y='P (dbars) in', title='Mean Pressure Evolution')
 st.plotly_chart(fig_press, use_container_width=True)
 
 st.subheader("Scatter: Mean pCO2 vs pH")
-fig_scatter = px.scatter(df_group, x='pCO2 out (matm)', y='pH out', title='Mean pCO2 vs pH', trendline='ols')
+fig_scatter = px.scatter(df_group, x='pCO2 in (matm)', y='pH in', title='Mean pCO2 vs pH', trendline='ols')
 st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.subheader("Correlation Heatmap")
-corr_cols = ['pCO2 out (matm)', 'pH out', 'CO3 out (mmol/kgSW)', 'Omega_CaCO3', 't(oC) out', 'P (dbars) out']
+corr_cols = ['pCO2 in (matm)', 'pH in', 'CO3 in (mmol/kgSW)', 'Omega_CaCO3', 't(oC) in', 'P (dbars) in']
 corr = df_group[corr_cols].corr()
 fig_heatmap = px.imshow(corr, text_auto=True, title='Correlation Matrix')
 st.plotly_chart(fig_heatmap, use_container_width=True)
@@ -118,20 +119,20 @@ def create_and_download_fig(df, x, y, title, filename):
     )
     plt.close(fig)
 
-create_and_download_fig(df_group, 'Year', 'pCO2 out (matm)', 'Mean pCO2 evolution', 'pco2_evolution.png')
-create_and_download_fig(df_group, 'Year', 'pH out', 'Mean pH evolution', 'ph_evolution.png')
-create_and_download_fig(df_group, 'Year', 'CO3 out (mmol/kgSW)', 'Mean [CO3^2-] evolution', 'co3_evolution.png')
+create_and_download_fig(df_group, 'Year', 'pCO2 in (matm)', 'Mean pCO2 evolution', 'pco2_evolution.png')
+create_and_download_fig(df_group, 'Year', 'pH in', 'Mean pH evolution', 'ph_evolution.png')
+create_and_download_fig(df_group, 'Year', 'CO3 in (mmol/kgSW)', 'Mean [CO3^2-] evolution', 'co3_evolution.png')
 create_and_download_fig(df_group, 'Year', 'Omega_CaCO3', 'Mean Omega CaCO3 evolution', 'omega_caco3_evolution.png')
 
 #create combined plot for all metrics
 fig, ax = plt.subplots()
 metrics = [
-    ('pCO2 out (matm)', 'Mean pCO2'),
-    ('pH out', 'Mean pH'),
-    ('CO3 out (mmol/kgSW)', 'Mean CO3'),
+    ('pCO2 in (matm)', 'Mean pCO2'),
+    ('pH in', 'Mean pH'),
+    ('CO3 in (mmol/kgSW)', 'Mean CO3'),
     ('Omega_CaCO3', 'Mean Omega CaCO3'),
-    ('t(oC) out', 'Mean Temp'),
-    ('P (dbars) out', 'Mean Pressure')
+    ('t(oC) in', 'Mean Temp'),
+    ('P (dbars) in', 'Mean Pressure')
 ]
 for col, label in metrics:
     ax.plot(df_group['Year'], df_group[col], label=label)
