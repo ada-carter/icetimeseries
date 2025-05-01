@@ -86,7 +86,22 @@ fig_press = px.line(df_group, x='Year', y='P (dbars) in', title='Mean Pressure E
 st.plotly_chart(fig_press, use_container_width=True)
 
 st.subheader("Scatter: Mean pCO2 vs pH")
-fig_scatter = px.scatter(df_group, x='pCO2 in (matm)', y='pH in', title='Mean pCO2 vs pH', trendline='ols')
+try:
+    import statsmodels.api as sm  # required for trendline
+    fig_scatter = px.scatter(
+        df_group,
+        x='pCO2 in (matm)',
+        y='pH in',
+        title='Mean pCO2 vs pH',
+        trendline='ols'
+    )
+except ModuleNotFoundError:
+    fig_scatter = px.scatter(
+        df_group,
+        x='pCO2 in (matm)',
+        y='pH in',
+        title='Mean pCO2 vs pH'
+    )
 st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.subheader("Correlation Heatmap")
